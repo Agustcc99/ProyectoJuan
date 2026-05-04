@@ -1,8 +1,16 @@
 require("dotenv").config();
+
 const app = require("./app");
+const { probarConexionBaseDatos } = require("./config/db");
 
-const PUERTO = process.env.PORT || 3000;
+const puerto = process.env.PORT || 3000;
 
-app.listen(PUERTO, () => {
-  console.log(`Servidor corriendo en http://localhost:${PUERTO}`);
-});
+async function iniciarServidor() {
+  await probarConexionBaseDatos();
+
+  app.listen(puerto, () => {
+    console.log(`Servidor backend escuchando en el puerto ${puerto}`);
+  });
+}
+
+iniciarServidor();
