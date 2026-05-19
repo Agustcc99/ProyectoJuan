@@ -33,7 +33,17 @@ export function cerrarSesionUsuario() {
   localStorage.removeItem("token");
   localStorage.removeItem("usuario");
 }
+
 export async function solicitarRecuperacionContrasena(email) {
   const respuesta = await api.post("/auth/solicitar-recuperacion", { email });
+  return respuesta.data;
+}
+
+export async function restablecerContrasena(tokenRecuperacion, nuevaContrasena) {
+  const respuesta = await api.post("/auth/restablecer-contrasena", {
+    token: tokenRecuperacion,
+    nuevaContrasena,
+  });
+
   return respuesta.data;
 }
