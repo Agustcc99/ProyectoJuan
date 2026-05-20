@@ -4,6 +4,9 @@ const cors = require("cors");
 const { poolDeConexiones } = require("./config/db");
 
 const authRoutes = require("./modules/auth/auth.routes");
+const rolesRoutes = require("./modules/roles/roles.routes");
+const permisosRoutes = require("./modules/permisos/permisos.routes");
+const usuariosRoutes = require("./modules/usuarios/usuarios.routes");
 
 const app = express();
 
@@ -31,7 +34,17 @@ app.get("/api/db-test", async (req, res) => {
     });
   }
 });
+
 // Rutas para autenticación
 app.use("/api/auth", authRoutes);
+
+// Rutas para roles
+app.use("/api/roles", rolesRoutes);
+
+// Rutas para permisos
+app.use("/api/permisos", permisosRoutes);
+
+// Rutas para usuarios
+app.use("/api/usuarios", usuariosRoutes);
 
 module.exports = app;

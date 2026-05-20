@@ -20,18 +20,25 @@ async function registrarUsuario(datosUsuario) {
     throw error;
   }
 
-  //salt
   const cantidadSaltosEncriptacion = 10;
-  //hash
   const contrasenaHash = await bcrypt.hash(contrasena, cantidadSaltosEncriptacion);
 
   const idRolUsuarioComun = 2;
+  const idConsultorioPorDefecto = 1;
 
   const [resultadoInsercion] = await poolDeConexiones.query(
     `INSERT INTO usuarios 
-      (nombre, apellido, email, contrasena_hash, id_rol, activo, fecha_creacion)
-     VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-    [nombre, apellido, email, contrasenaHash, idRolUsuarioComun, true]
+      (nombre, apellido, email, contrasena_hash, id_rol, id_consultorio, activo, fecha_creacion)
+     VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+    [
+      nombre,
+      apellido,
+      email,
+      contrasenaHash,
+      idRolUsuarioComun,
+      idConsultorioPorDefecto,
+      true,
+    ]
   );
 
   return {
@@ -39,7 +46,8 @@ async function registrarUsuario(datosUsuario) {
     nombre,
     apellido,
     email,
-    id_roles: idRolUsuarioComun,
+    id_rol: idRolUsuarioComun,
+    id_consultorio: idConsultorioPorDefecto,
     activo: true,
   };
 }
@@ -56,6 +64,7 @@ async function iniciarSesionUsuario(credencialesUsuario) {
         email,
         contrasena_hash,
         id_rol,
+        id_consultorio,
         activo
      FROM usuarios
      WHERE email = ?
@@ -92,6 +101,7 @@ async function iniciarSesionUsuario(credencialesUsuario) {
     id_usuario: usuarioEncontrado.id_usuario,
     email: usuarioEncontrado.email,
     id_rol: usuarioEncontrado.id_rol,
+    id_consultorio: usuarioEncontrado.id_consultorio,
   };
 
   const token = jwt.sign(datosParaToken, process.env.JWT_SECRET, {
@@ -106,6 +116,7 @@ async function iniciarSesionUsuario(credencialesUsuario) {
       apellido: usuarioEncontrado.apellido,
       email: usuarioEncontrado.email,
       id_rol: usuarioEncontrado.id_rol,
+      id_consultorio: usuarioEncontrado.id_consultorio,
       activo: usuarioEncontrado.activo,
     },
   };
