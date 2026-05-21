@@ -229,10 +229,41 @@ async function restablecerContrasena(datosRestablecimiento) {
     mensaje: "La contraseña fue restablecida correctamente.",
   };
 }
+// Función para obtener los permisos del usuario autenticado
+async function obtenerPermisosUsuarioAutenticado(usuarioAutenticado) {
+  const { id_rol, id_consultorio } = usuarioAutenticado;
+
+  if (!id_rol || !id_consultorio) {
+    const error = new Error(
+      "No se pudo identificar el rol o consultorio del usuario."
+    );
+    error.statusCode = 401;
+    throw error;
+  }
+
+  const [permisosEncontrados] = await poolDeConexiones.query(
+    `SELECT 
+        p.codigo_permiso
+     FROM roles r
+     INNER JOIN roles_permisos rp
+       ON r.id_rol = rp.id_rol
+     INNER JOIN permisos p
+       ON rp.id_permiso = p.id_permiso
+     WHERE r.id_rol = ?
+       AND r.id_consultorio = ?
+       AND r.activo = 1
+       AND p.activo = 1
+     ORDER BY p.id_permiso ASC`,
+    [id_rol, id_consultorio]
+  );
+
+  return permisosEncontrados.map((permiso) => permiso.codigo_permiso);
+}
 
 module.exports = {
   registrarUsuario,
   iniciarSesionUsuario,
   solicitarRecuperacionContrasena,
   restablecerContrasena,
+  obtenerPermisosUsuarioAutenticado,
 };

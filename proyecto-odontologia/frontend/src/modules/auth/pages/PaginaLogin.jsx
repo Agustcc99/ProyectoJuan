@@ -29,7 +29,7 @@ function PaginaLogin() {
 
   function redirigirUsuarioSegunRol(usuarioAutenticado) {
     if (usuarioAutenticado.id_rol === ROLES_USUARIO.ADMINISTRADOR) {
-      navigate("/panel-admin");
+      navigate("/panel");
       return;
     }
 

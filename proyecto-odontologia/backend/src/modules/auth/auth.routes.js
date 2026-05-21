@@ -11,6 +11,7 @@ const {
 const {
   registrarUsuario,
   iniciarSesionUsuario,
+  obtenerPermisosUsuarioAutenticado,
   solicitarRecuperacionContrasena,
   restablecerContrasena,
 } = require("./auth.service");
@@ -50,12 +51,28 @@ router.post("/login", validarDatosDeLogin, async (req, res) => {
   }
 });
 
-// Ruta protegida
+// Ruta protegida para probar el JWT
 router.get("/perfil", verificarToken, (req, res) => {
   res.status(200).json({
     mensaje: "Acceso autorizado a ruta protegida.",
     usuarioAutenticado: req.usuario,
   });
+});
+
+// Obtener permisos del usuario autenticado
+router.get("/permisos", verificarToken, async (req, res) => {
+  try {
+    const permisos = await obtenerPermisosUsuarioAutenticado(req.usuario);
+
+    res.status(200).json({
+      mensaje: "Permisos del usuario obtenidos correctamente.",
+      permisos,
+    });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      mensaje: error.message || "Error interno del servidor.",
+    });
+  }
 });
 
 // Solicitud de recuperación de contraseña

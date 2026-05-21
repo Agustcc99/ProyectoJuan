@@ -22,16 +22,58 @@ export function obtenerUsuarioGuardado() {
     return null;
   }
 
-  return JSON.parse(usuarioGuardado);
+  try {
+    return JSON.parse(usuarioGuardado);
+  } catch {
+    return null;
+  }
 }
 
 export function obtenerTokenGuardado() {
   return localStorage.getItem("token");
 }
 
+export async function obtenerPermisosUsuarioAutenticado() {
+  const respuesta = await api.get("/auth/permisos");
+  return respuesta.data;
+}
+
+export function guardarPermisosUsuario(permisos) {
+  const permisosNormalizados = Array.isArray(permisos) ? permisos : [];
+  localStorage.setItem("permisos", JSON.stringify(permisosNormalizados));
+}
+
+export function obtenerPermisosGuardados() {
+  const permisosGuardados = localStorage.getItem("permisos");
+
+  if (!permisosGuardados) {
+    return [];
+  }
+
+  try {
+    const permisos = JSON.parse(permisosGuardados);
+    return Array.isArray(permisos) ? permisos : [];
+  } catch {
+    return [];
+  }
+}
+
+export function usuarioTienePermiso(codigoPermiso) {
+  const permisos = obtenerPermisosGuardados();
+  return permisos.includes(codigoPermiso);
+}
+
+export function usuarioTieneAlgunPermiso(codigosPermisos = []) {
+  const permisos = obtenerPermisosGuardados();
+  return codigosPermisos.some((codigoPermiso) =>
+    permisos.includes(codigoPermiso)
+  );
+}
+
 export function cerrarSesionUsuario() {
   localStorage.removeItem("token");
   localStorage.removeItem("usuario");
+  localStorage.removeItem("permisos");
 }
 
 export async function solicitarRecuperacionContrasena(email) {
