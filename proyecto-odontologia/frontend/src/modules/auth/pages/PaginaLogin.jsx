@@ -4,6 +4,8 @@ import AuthCard from "../components/AuthCard";
 import {
   iniciarSesionUsuario,
   guardarSesionUsuario,
+  obtenerPermisosUsuarioAutenticado,
+  guardarPermisosUsuario,
 } from "../services/authService";
 import { ROLES_USUARIO } from "../../../utils/roles";
 
@@ -28,17 +30,17 @@ function PaginaLogin() {
   }
 
   function redirigirUsuarioSegunRol(usuarioAutenticado) {
+    if (!usuarioAutenticado.id_rol) {
+      setMensajeError("El usuario no tiene un rol asignado.");
+      return;
+    }
+
     if (usuarioAutenticado.id_rol === ROLES_USUARIO.ADMINISTRADOR) {
       navigate("/panel");
       return;
     }
 
-    if (usuarioAutenticado.id_rol === ROLES_USUARIO.EMPLEADO) {
-      navigate("/panel-empleado");
-      return;
-    }
-
-    setMensajeError("El usuario no tiene un rol válido asignado.");
+    navigate("/panel-empleado");
   }
 
   async function manejarEnvioLogin(evento) {
@@ -54,6 +56,16 @@ function PaginaLogin() {
       });
 
       guardarSesionUsuario(resultadoLogin.token, resultadoLogin.usuario);
+
+      const respuestaPermisos = await obtenerPermisosUsuarioAutenticado();
+
+      const permisosUsuario =
+        respuestaPermisos.permisos ||
+        respuestaPermisos.data ||
+        respuestaPermisos ||
+        [];
+
+      guardarPermisosUsuario(permisosUsuario);
 
       redirigirUsuarioSegunRol(resultadoLogin.usuario);
     } catch (error) {
