@@ -118,7 +118,105 @@ async function actualizarRolDeUsuario(idUsuario, idRolNuevo, idConsultorio) {
   };
 }
 
+/*
+  FIX HT7 (AUD-09): aprueba a un usuario registrado públicamente.
+
+  Sólo actúa sobre usuarios INACTIVOS (pendientes) del consultorio del
+  administrador autenticado: les asigna el rol definitivo elegido y los activa en
+  un único paso. Es una acción distinta de actualizarRolDeUsuario() a propósito
+  -esa sigue exigiendo un usuario activo- para no confundir "reasignar el rol de
+  alguien que ya opera en el sistema" con "dar de alta a alguien que se registró
+  por su cuenta". Cubre el Criterio 2 de aceptación de HT7.
+*/
+async function aprobarUsuarioPendiente(idUsuario, idRolNuevo, idConsultorio) {
+  if (!idUsuario || Number.isNaN(Number(idUsuario))) {
+    const error = new Error("El id del usuario no es válido.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (!idRolNuevo || Number.isNaN(Number(idRolNuevo))) {
+    const error = new Error("El id del rol no es válido.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const [usuariosEncontrados] = await poolDeConexiones.query(
+    `SELECT
+        id_usuario,
+        nombre,
+        apellido,
+        email,
+        id_rol,
+        id_consultorio,
+        activo
+     FROM usuarios
+     WHERE id_usuario = ?
+       AND id_consultorio = ?
+     LIMIT 1`,
+    [idUsuario, idConsultorio]
+  );
+
+  if (usuariosEncontrados.length === 0) {
+    const error = new Error("El usuario no existe o no pertenece a este consultorio.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const usuarioEncontrado = usuariosEncontrados[0];
+
+  if (usuarioEncontrado.activo) {
+    const error = new Error("El usuario ya fue aprobado anteriormente.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const [rolesEncontrados] = await poolDeConexiones.query(
+    `SELECT
+        id_rol,
+        nombre_rol,
+        descripcion,
+        activo,
+        id_consultorio
+     FROM roles
+     WHERE id_rol = ?
+       AND id_consultorio = ?
+       AND activo = 1
+     LIMIT 1`,
+    [idRolNuevo, idConsultorio]
+  );
+
+  if (rolesEncontrados.length === 0) {
+    const error = new Error("El rol no existe, está inactivo o no pertenece a este consultorio.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  await poolDeConexiones.query(
+    `UPDATE usuarios
+     SET id_rol = ?,
+         activo = 1
+     WHERE id_usuario = ?
+       AND id_consultorio = ?`,
+    [idRolNuevo, idUsuario, idConsultorio]
+  );
+
+  const rolNuevo = rolesEncontrados[0];
+
+  return {
+    id_usuario: Number(idUsuario),
+    nombre: usuarioEncontrado.nombre,
+    apellido: usuarioEncontrado.apellido,
+    email: usuarioEncontrado.email,
+    id_rol: rolNuevo.id_rol,
+    nombre_rol: rolNuevo.nombre_rol,
+    id_consultorio: idConsultorio,
+    activo: true,
+  };
+}
+
 module.exports = {
   listarUsuariosDelConsultorio,
   actualizarRolDeUsuario,
+  aprobarUsuarioPendiente,
 };

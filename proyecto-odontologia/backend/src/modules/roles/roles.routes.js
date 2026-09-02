@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
+// FIX HT3 (AUD-04): formato de respuesta centralizado.
+const { enviarExito } = require("../../utils/response");
+
 const {
   verificarToken,
   verificarPermiso,
@@ -17,6 +20,12 @@ const {
 } = require("./roles.service");
 
 /*
+  FIX HT3 (AUD-04): se eliminaron los bloques try/catch repetidos en cada ruta.
+  Los errores lanzados por los services llegan al middleware centralizado de
+  errores registrado al final de la cadena en app.js.
+*/
+
+/*
   Ruta para listar los roles del consultorio.
   El usuario debe estar autenticado y tener el permiso ver_roles.
 */
@@ -25,20 +34,11 @@ router.get(
   verificarToken,
   verificarPermiso("ver_roles"),
   async (req, res) => {
-    try {
-      const idConsultorio = req.usuario.id_consultorio;
+    const idConsultorio = req.usuario.id_consultorio;
 
-      const roles = await listarRolesDelConsultorio(idConsultorio);
+    const roles = await listarRolesDelConsultorio(idConsultorio);
 
-      res.status(200).json({
-        mensaje: "Roles obtenidos correctamente.",
-        roles,
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({
-        mensaje: error.message || "Error interno del servidor.",
-      });
-    }
+    enviarExito(res, 200, "Roles obtenidos correctamente.", { roles });
   }
 );
 
@@ -51,20 +51,11 @@ router.post(
   verificarToken,
   verificarPermiso("crear_roles"),
   async (req, res) => {
-    try {
-      const idConsultorio = req.usuario.id_consultorio;
+    const idConsultorio = req.usuario.id_consultorio;
 
-      const rolCreado = await crearRolDelConsultorio(req.body, idConsultorio);
+    const rolCreado = await crearRolDelConsultorio(req.body, idConsultorio);
 
-      res.status(201).json({
-        mensaje: "Rol creado correctamente.",
-        rol: rolCreado,
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({
-        mensaje: error.message || "Error interno del servidor.",
-      });
-    }
+    enviarExito(res, 201, "Rol creado correctamente.", { rol: rolCreado });
   }
 );
 
@@ -78,22 +69,15 @@ router.get(
   verificarToken,
   verificarPermiso("asignar_permisos"),
   async (req, res) => {
-    try {
-      const idConsultorio = req.usuario.id_consultorio;
-      const idRol = req.params.id;
+    const idConsultorio = req.usuario.id_consultorio;
+    const idRol = req.params.id;
 
-      const resultado = await obtenerPermisosDeRol(idRol, idConsultorio);
+    const resultado = await obtenerPermisosDeRol(idRol, idConsultorio);
 
-      res.status(200).json({
-        mensaje: "Permisos del rol obtenidos correctamente.",
-        rol: resultado.rol,
-        permisos: resultado.permisos,
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({
-        mensaje: error.message || "Error interno del servidor.",
-      });
-    }
+    enviarExito(res, 200, "Permisos del rol obtenidos correctamente.", {
+      rol: resultado.rol,
+      permisos: resultado.permisos,
+    });
   }
 );
 
@@ -107,27 +91,20 @@ router.put(
   verificarToken,
   verificarPermiso("asignar_permisos"),
   async (req, res) => {
-    try {
-      const idConsultorio = req.usuario.id_consultorio;
-      const idRol = req.params.id;
-      const { permisos } = req.body;
+    const idConsultorio = req.usuario.id_consultorio;
+    const idRol = req.params.id;
+    const { permisos } = req.body;
 
-      const resultado = await actualizarPermisosDeRol(
-        idRol,
-        permisos,
-        idConsultorio
-      );
+    const resultado = await actualizarPermisosDeRol(
+      idRol,
+      permisos,
+      idConsultorio
+    );
 
-      res.status(200).json({
-        mensaje: "Permisos del rol actualizados correctamente.",
-        rol: resultado.rol,
-        permisos: resultado.permisos,
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({
-        mensaje: error.message || "Error interno del servidor.",
-      });
-    }
+    enviarExito(res, 200, "Permisos del rol actualizados correctamente.", {
+      rol: resultado.rol,
+      permisos: resultado.permisos,
+    });
   }
 );
 
@@ -140,25 +117,18 @@ router.put(
   verificarToken,
   verificarPermiso("editar_roles"),
   async (req, res) => {
-    try {
-      const idConsultorio = req.usuario.id_consultorio;
-      const idRol = req.params.id;
+    const idConsultorio = req.usuario.id_consultorio;
+    const idRol = req.params.id;
 
-      const rolModificado = await modificarRolDelConsultorio(
-        idRol,
-        req.body,
-        idConsultorio
-      );
+    const rolModificado = await modificarRolDelConsultorio(
+      idRol,
+      req.body,
+      idConsultorio
+    );
 
-      res.status(200).json({
-        mensaje: "Rol modificado correctamente.",
-        rol: rolModificado,
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({
-        mensaje: error.message || "Error interno del servidor.",
-      });
-    }
+    enviarExito(res, 200, "Rol modificado correctamente.", {
+      rol: rolModificado,
+    });
   }
 );
 
@@ -172,24 +142,17 @@ router.patch(
   verificarToken,
   verificarPermiso("desactivar_roles"),
   async (req, res) => {
-    try {
-      const idConsultorio = req.usuario.id_consultorio;
-      const idRol = req.params.id;
+    const idConsultorio = req.usuario.id_consultorio;
+    const idRol = req.params.id;
 
-      const rolDesactivado = await desactivarRolDelConsultorio(
-        idRol,
-        idConsultorio
-      );
+    const rolDesactivado = await desactivarRolDelConsultorio(
+      idRol,
+      idConsultorio
+    );
 
-      res.status(200).json({
-        mensaje: "Rol desactivado correctamente.",
-        rol: rolDesactivado,
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({
-        mensaje: error.message || "Error interno del servidor.",
-      });
-    }
+    enviarExito(res, 200, "Rol desactivado correctamente.", {
+      rol: rolDesactivado,
+    });
   }
 );
 
@@ -203,24 +166,17 @@ router.patch(
   verificarToken,
   verificarPermiso("reactivar_roles"),
   async (req, res) => {
-    try {
-      const idConsultorio = req.usuario.id_consultorio;
-      const idRol = req.params.id;
+    const idConsultorio = req.usuario.id_consultorio;
+    const idRol = req.params.id;
 
-      const rolReactivado = await reactivarRolDelConsultorio(
-        idRol,
-        idConsultorio
-      );
+    const rolReactivado = await reactivarRolDelConsultorio(
+      idRol,
+      idConsultorio
+    );
 
-      res.status(200).json({
-        mensaje: "Rol reactivado correctamente.",
-        rol: rolReactivado,
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({
-        mensaje: error.message || "Error interno del servidor.",
-      });
-    }
+    enviarExito(res, 200, "Rol reactivado correctamente.", {
+      rol: rolReactivado,
+    });
   }
 );
 

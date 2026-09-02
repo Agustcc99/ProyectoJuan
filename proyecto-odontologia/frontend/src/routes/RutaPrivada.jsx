@@ -1,9 +1,12 @@
 import { Navigate } from "react-router-dom";
 
-function RutaPrivada({ children }) {
-  const token = localStorage.getItem("token");
+// FIX HT4 (AUD-05): el estado de sesión llega del contexto, no de localStorage.
+import useAuth from "../hooks/useAuth";
 
-  if (!token) {
+function RutaPrivada({ children }) {
+  const { estaAutenticado } = useAuth();
+
+  if (!estaAutenticado) {
     return <Navigate to="/login" replace />;
   }
 
@@ -11,3 +14,4 @@ function RutaPrivada({ children }) {
 }
 
 export default RutaPrivada;
+

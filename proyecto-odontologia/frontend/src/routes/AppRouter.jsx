@@ -1,4 +1,8 @@
-import { Link, Navigate, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+
+// FIX HT2 (AUD-02): manejo automático de sesión expirada
+import { EVENTO_SESION_EXPIRADA } from "../services/api";
 
 // Auth
 import PaginaLogin from "../modules/auth/pages/PaginaLogin";
@@ -56,6 +60,28 @@ function AccesoDenegado() {
 }
 
 function AppRouter() {
+  const navigate = useNavigate();
+
+  /*
+    FIX HT2 (AUD-02): al detectar un 401, el interceptor de api.js ya limpió la
+    sesión y emite este evento. Acá sólo se hace la redirección a /login, para que
+    ninguna pantalla protegida quede inutilizable.
+
+    FIX HT4 (AUD-05): el mensaje informativo ya no viaja en el state de la
+    navegación; lo guarda el AuthContext y lo lee la pantalla de login.
+  */
+  useEffect(() => {
+    function manejarSesionExpirada() {
+      navigate("/login", { replace: true });
+    }
+
+    window.addEventListener(EVENTO_SESION_EXPIRADA, manejarSesionExpirada);
+
+    return () => {
+      window.removeEventListener(EVENTO_SESION_EXPIRADA, manejarSesionExpirada);
+    };
+  }, [navigate]);
+
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />

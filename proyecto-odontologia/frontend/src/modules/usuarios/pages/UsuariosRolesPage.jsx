@@ -3,10 +3,15 @@ import { useNavigate } from "react-router-dom";
 import {
   obtenerUsuarios,
   actualizarRolUsuario,
+  aprobarUsuario, // FIX HT7 (AUD-09)
 } from "../services/usuariosService";
 import { obtenerRoles } from "../../roles/services/rolesService";
 import ConfirmacionAccionModal from "../../roles/components/ConfirmacionAccionModal";
 import "../../roles/styles/roles.css";
+
+function esUsuarioActivo(usuario) {
+  return Number(usuario.activo) === 1 || usuario.activo === true;
+}
 
 function UsuariosRolesPage() {
   const [usuarios, setUsuarios] = useState([]);
@@ -17,11 +22,18 @@ function UsuariosRolesPage() {
   const [mensajeError, setMensajeError] = useState("");
   const [mensajeExito, setMensajeExito] = useState("");
 
+  /*
+    FIX HT7 (AUD-09): el modal ahora cubre dos acciones distintas.
+    esAprobacion = true -> el usuario está pendiente (registro público, activo=0):
+    se lo aprueba y se le asigna su primer rol en el mismo paso.
+    esAprobacion = false -> reasignación de rol de un usuario que ya opera (HU9).
+  */
   const [modalConfirmacion, setModalConfirmacion] = useState({
     abierto: false,
     usuario: null,
     idRolNuevo: null,
     rolNuevo: null,
+    esAprobacion: false,
   });
 
   const navegar = useNavigate();
@@ -81,19 +93,34 @@ function UsuariosRolesPage() {
     }));
   }
 
-  function abrirModalCambioRol(usuario) {
+  /*
+    FIX HT7 (AUD-09): reemplaza a abrirModalCambioRol.
+    Para un usuario pendiente no hay "rol actual" real que comparar -id_rol en la
+    base es sólo el placeholder que exige la tabla-, así que se exige elegir
+    cualquier rol; para un usuario activo se mantiene la regla de HU9: el rol
+    elegido debe ser distinto del actual.
+  */
+  function abrirModalAccion(usuario) {
     limpiarMensajes();
 
-    const nuevoIdRol =
-      rolesSeleccionados[usuario.id_usuario] || usuario.id_rol;
+    const usuarioActivo = esUsuarioActivo(usuario);
 
-    if (Number(nuevoIdRol) === Number(usuario.id_rol)) {
+    const idRolElegido =
+      rolesSeleccionados[usuario.id_usuario] ||
+      (usuarioActivo ? usuario.id_rol : "");
+
+    if (!idRolElegido) {
+      setMensajeError("Seleccioná un rol antes de continuar.");
+      return;
+    }
+
+    if (usuarioActivo && Number(idRolElegido) === Number(usuario.id_rol)) {
       setMensajeError("Seleccioná un rol diferente antes de guardar.");
       return;
     }
 
     const rolNuevo = roles.find((rol) => {
-      return Number(rol.id_rol) === Number(nuevoIdRol);
+      return Number(rol.id_rol) === Number(idRolElegido);
     });
 
     if (!rolNuevo) {
@@ -104,8 +131,9 @@ function UsuariosRolesPage() {
     setModalConfirmacion({
       abierto: true,
       usuario,
-      idRolNuevo: nuevoIdRol,
+      idRolNuevo: idRolElegido,
       rolNuevo,
+      esAprobacion: !usuarioActivo,
     });
   }
 
@@ -117,11 +145,12 @@ function UsuariosRolesPage() {
       usuario: null,
       idRolNuevo: null,
       rolNuevo: null,
+      esAprobacion: false,
     });
   }
 
-  async function confirmarCambioRol() {
-    const { usuario, idRolNuevo } = modalConfirmacion;
+  async function confirmarAccion() {
+    const { usuario, idRolNuevo, esAprobacion } = modalConfirmacion;
 
     if (!usuario || !idRolNuevo) return;
 
@@ -129,15 +158,21 @@ function UsuariosRolesPage() {
       setGuardandoUsuario(usuario.id_usuario);
       limpiarMensajes();
 
-      await actualizarRolUsuario(usuario.id_usuario, Number(idRolNuevo));
-
-      setMensajeExito("Rol del usuario actualizado correctamente.");
+      if (esAprobacion) {
+        // FIX HT7 (AUD-09): aprobación + asignación de rol en un único paso.
+        await aprobarUsuario(usuario.id_usuario, Number(idRolNuevo));
+        setMensajeExito("Usuario aprobado y rol asignado correctamente.");
+      } else {
+        await actualizarRolUsuario(usuario.id_usuario, Number(idRolNuevo));
+        setMensajeExito("Rol del usuario actualizado correctamente.");
+      }
 
       setModalConfirmacion({
         abierto: false,
         usuario: null,
         idRolNuevo: null,
         rolNuevo: null,
+        esAprobacion: false,
       });
 
       await cargarDatosIniciales();
@@ -145,7 +180,10 @@ function UsuariosRolesPage() {
       const mensajeBackend = error.response?.data?.mensaje;
 
       setMensajeError(
-        mensajeBackend || "No se pudo actualizar el rol del usuario."
+        mensajeBackend ||
+          (esAprobacion
+            ? "No se pudo aprobar al usuario."
+            : "No se pudo actualizar el rol del usuario.")
       );
     } finally {
       setGuardandoUsuario(null);
@@ -158,6 +196,7 @@ function UsuariosRolesPage() {
 
   const usuarioDelModal = modalConfirmacion.usuario;
   const rolNuevoDelModal = modalConfirmacion.rolNuevo;
+  const esAprobacionDelModal = modalConfirmacion.esAprobacion;
 
   return (
     <>
@@ -167,8 +206,8 @@ function UsuariosRolesPage() {
             <p className="roles-page__etiqueta"></p>
             <h1>Administración de usuarios</h1>
             <p className="roles-page__descripcion">
-              Visualizá los usuarios del consultorio y modificá el rol asignado
-              a cada uno.
+              Visualizá los usuarios del consultorio, aprobá a quienes se
+              registraron por su cuenta y modificá el rol asignado a cada uno.
             </p>
           </div>
 
@@ -218,17 +257,28 @@ function UsuariosRolesPage() {
 
                 <tbody>
                   {usuarios.map((usuario) => {
-                    const usuarioActivo =
-                      Number(usuario.activo) === 1 || usuario.activo === true;
+                    const usuarioActivo = esUsuarioActivo(usuario);
 
+                    /*
+                      FIX HT7 (AUD-09): un usuario pendiente no arranca con un rol
+                      preseleccionado. Mostrar de entrada el rol placeholder de la
+                      base (por ejemplo "empleado") daría a entender que el sistema
+                      ya le asignó ese rol, cuando en realidad todavía nadie lo
+                      revisó.
+                    */
                     const rolSeleccionado =
-                      rolesSeleccionados[usuario.id_usuario] || usuario.id_rol;
+                      rolesSeleccionados[usuario.id_usuario] ??
+                      (usuarioActivo ? usuario.id_rol : "");
 
                     const guardandoEsteUsuario =
                       guardandoUsuario === usuario.id_usuario;
 
                     const rolSinCambios =
+                      usuarioActivo &&
                       Number(rolSeleccionado) === Number(usuario.id_rol);
+
+                    const botonDeshabilitado =
+                      guardandoEsteUsuario || !rolSeleccionado || rolSinCambios;
 
                     return (
                       <tr key={usuario.id_usuario}>
@@ -240,7 +290,11 @@ function UsuariosRolesPage() {
 
                         <td>{usuario.email}</td>
 
-                        <td>{usuario.nombre_rol || "Sin rol"}</td>
+                        <td>
+                          {usuarioActivo
+                            ? usuario.nombre_rol || "Sin rol"
+                            : "Pendiente de aprobación"}
+                        </td>
 
                         <td>
                           <span
@@ -250,7 +304,7 @@ function UsuariosRolesPage() {
                                 : "roles-page__badge roles-page__badge--inactivo"
                             }
                           >
-                            {usuarioActivo ? "Activo" : "Inactivo"}
+                            {usuarioActivo ? "Activo" : "Pendiente"}
                           </span>
                         </td>
 
@@ -258,7 +312,7 @@ function UsuariosRolesPage() {
                           <select
                             className="roles-page__select-tabla"
                             value={rolSeleccionado || ""}
-                            disabled={!usuarioActivo || guardandoEsteUsuario}
+                            disabled={guardandoEsteUsuario}
                             onChange={(evento) =>
                               manejarCambioRol(
                                 usuario.id_usuario,
@@ -280,16 +334,16 @@ function UsuariosRolesPage() {
                           <div className="roles-page__acciones">
                             <button
                               type="button"
-                              disabled={
-                                !usuarioActivo ||
-                                guardandoEsteUsuario ||
-                                rolSinCambios
-                              }
-                              onClick={() => abrirModalCambioRol(usuario)}
+                              disabled={botonDeshabilitado}
+                              onClick={() => abrirModalAccion(usuario)}
                             >
                               {guardandoEsteUsuario
-                                ? "Guardando..."
-                                : "Guardar rol"}
+                                ? usuarioActivo
+                                  ? "Guardando..."
+                                  : "Aprobando..."
+                                : usuarioActivo
+                                ? "Guardar rol"
+                                : "Aprobar y asignar rol"}
                             </button>
                           </div>
                         </td>
@@ -306,19 +360,31 @@ function UsuariosRolesPage() {
       <ConfirmacionAccionModal
         abierto={modalConfirmacion.abierto}
         tipo="exito"
-        titulo="Confirmar cambio de rol"
-        descripcion={`Estás por cambiar el rol de "${
-          usuarioDelModal
-            ? `${usuarioDelModal.nombre} ${usuarioDelModal.apellido}`
-            : "este usuario"
-        }" al rol "${
-          rolNuevoDelModal?.nombre_rol || "seleccionado"
-        }". Este cambio modificará las funcionalidades que podrá ver y utilizar dentro del sistema.`}
-        textoConfirmar="Cambiar rol"
+        titulo={
+          esAprobacionDelModal ? "Confirmar aprobación" : "Confirmar cambio de rol"
+        }
+        descripcion={
+          esAprobacionDelModal
+            ? `Estás por aprobar a "${
+                usuarioDelModal
+                  ? `${usuarioDelModal.nombre} ${usuarioDelModal.apellido}`
+                  : "este usuario"
+              }" con el rol "${
+                rolNuevoDelModal?.nombre_rol || "seleccionado"
+              }". A partir de este momento va a poder iniciar sesión y usar los permisos de ese rol.`
+            : `Estás por cambiar el rol de "${
+                usuarioDelModal
+                  ? `${usuarioDelModal.nombre} ${usuarioDelModal.apellido}`
+                  : "este usuario"
+              }" al rol "${
+                rolNuevoDelModal?.nombre_rol || "seleccionado"
+              }". Este cambio modificará las funcionalidades que podrá ver y utilizar dentro del sistema.`
+        }
+        textoConfirmar={esAprobacionDelModal ? "Aprobar usuario" : "Cambiar rol"}
         textoCancelar="Cancelar"
         cargando={Boolean(guardandoUsuario)}
         onCancelar={cerrarModalConfirmacion}
-        onConfirmar={confirmarCambioRol}
+        onConfirmar={confirmarAccion}
       />
     </>
   );

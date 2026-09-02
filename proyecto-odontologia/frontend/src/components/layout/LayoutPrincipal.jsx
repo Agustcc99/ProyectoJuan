@@ -1,12 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import {
-  cerrarSesionUsuario,
-  obtenerUsuarioGuardado,
-  obtenerPermisosGuardados,
-  obtenerPermisosUsuarioAutenticado,
-  guardarPermisosUsuario,
-} from "../../modules/auth/services/authService";
+
+// FIX HT4 (AUD-05): usuario, permisos y cierre de sesión salen del contexto.
+import useAuth from "../../hooks/useAuth";
 import { ROLES_USUARIO } from "../../utils/roles";
 
 // ── Íconos SVG inline ───────────────────────────────
@@ -158,9 +154,13 @@ function obtenerIniciales(nombre = "", apellido = "") {
   return (n + a).toUpperCase() || "U";
 }
 
-function obtenerNombreRol(idRol) {
-  if (idRol === ROLES_USUARIO.ADMINISTRADOR) return "Administrador";
-  if (idRol === ROLES_USUARIO.EMPLEADO) return "Empleado";
+function obtenerNombreRol(usuario) {
+  // FIX HT1: si el backend informa el rol vigente se muestra ese, así el cambio de
+  // rol en sesión activa también se refleja en la interfaz.
+  if (usuario?.nombre_rol) return usuario.nombre_rol;
+
+  if (usuario?.id_rol === ROLES_USUARIO.ADMINISTRADOR) return "Administrador";
+  if (usuario?.id_rol === ROLES_USUARIO.EMPLEADO) return "Empleado";
   return "Usuario";
 }
 
@@ -191,11 +191,14 @@ function LayoutPrincipal({ baseRuta = "/panel" }) {
   const location = useLocation();
 
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
-  const [permisosUsuario, setPermisosUsuario] = useState(() =>
-    obtenerPermisosGuardados()
-  );
 
-  const usuario = obtenerUsuarioGuardado();
+  /*
+    FIX HT4 (AUD-05): reemplaza el estado local de permisos y usuario, las lecturas
+    de localStorage y la revalidación periódica que vivían en este componente.
+    La revalidación de HT1 ahora corre en el AuthProvider, que sobrevive a los
+    cambios de pantalla.
+  */
+  const { usuario, cerrarSesion, tienePermiso, tieneAlgunPermiso } = useAuth();
 
   const iniciales = obtenerIniciales(usuario?.nombre, usuario?.apellido);
 
@@ -203,41 +206,13 @@ function LayoutPrincipal({ baseRuta = "/panel" }) {
     ? `${usuario.nombre} ${usuario.apellido}`
     : "Usuario";
 
-  const nombreRol = obtenerNombreRol(usuario?.id_rol);
+  const nombreRol = obtenerNombreRol(usuario);
 
   const tituloActual = obtenerTituloRutaActual(location.pathname);
 
-  useEffect(() => {
-    let componenteActivo = true;
-
-    async function cargarPermisosUsuario() {
-      try {
-        const respuesta = await obtenerPermisosUsuarioAutenticado();
-
-        const permisos =
-          respuesta.permisos || respuesta.data || respuesta || [];
-
-        const permisosNormalizados = Array.isArray(permisos) ? permisos : [];
-
-        guardarPermisosUsuario(permisosNormalizados);
-
-        if (componenteActivo) {
-          setPermisosUsuario(permisosNormalizados);
-        }
-      } catch (error) {
-        console.error("No se pudieron cargar los permisos del usuario:", error);
-      }
-    }
-
-    cargarPermisosUsuario();
-
-    return () => {
-      componenteActivo = false;
-    };
-  }, []);
-
   function manejarCerrarSesion() {
-    cerrarSesionUsuario();
+    // FIX HT4: el cierre de sesión limpia el estado global y la persistencia.
+    cerrarSesion();
     navigate("/login");
   }
 
@@ -245,16 +220,6 @@ function LayoutPrincipal({ baseRuta = "/panel" }) {
     if (window.innerWidth < 992) {
       setSidebarAbierto(false);
     }
-  }
-
-  function tienePermiso(codigoPermiso) {
-    return permisosUsuario.includes(codigoPermiso);
-  }
-
-  function tieneAlgunPermiso(codigosPermisos = []) {
-    return codigosPermisos.some((codigoPermiso) =>
-      tienePermiso(codigoPermiso)
-    );
   }
 
   const itemsNav = [

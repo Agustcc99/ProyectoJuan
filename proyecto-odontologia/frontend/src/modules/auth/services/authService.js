@@ -63,6 +63,75 @@ export function usuarioTienePermiso(codigoPermiso) {
   return permisos.includes(codigoPermiso);
 }
 
+/*
+  FIX HT1 (AUD-01): nombre del evento que avisa al resto de la app que los permisos
+  y el rol vigentes cambiaron, para que las pantallas se actualicen sin recargar.
+*/
+export const EVENTO_SESION_ACTUALIZADA = "sesion:actualizada";
+
+// FIX HT1: frecuencia de la revalidación periódica de permisos mientras se navega.
+export const INTERVALO_REVALIDACION_SESION_MS = 60000;
+
+export function guardarTokenSesion(token) {
+  if (token) {
+    localStorage.setItem("token", token);
+  }
+}
+
+function guardarUsuarioSesion(usuario) {
+  if (usuario) {
+    localStorage.setItem("usuario", JSON.stringify(usuario));
+  }
+}
+
+function notificarSesionActualizada(permisos, usuario) {
+  window.dispatchEvent(
+    new CustomEvent(EVENTO_SESION_ACTUALIZADA, {
+      detail: { permisos, usuario },
+    })
+  );
+}
+
+async function ejecutarSincronizacionDeSesion() {
+  const respuesta = await obtenerPermisosUsuarioAutenticado();
+
+  const permisosRecibidos =
+    respuesta?.permisos || respuesta?.data || respuesta || [];
+
+  const permisos = Array.isArray(permisosRecibidos) ? permisosRecibidos : [];
+
+  // FIX HT1: el backend devuelve el rol vigente y un token renovado alineado a ese rol.
+  guardarTokenSesion(respuesta?.token);
+  guardarUsuarioSesion(respuesta?.usuario);
+  guardarPermisosUsuario(permisos);
+
+  const usuario = respuesta?.usuario || obtenerUsuarioGuardado();
+
+  notificarSesionActualizada(permisos, usuario);
+
+  return { permisos, usuario };
+}
+
+let sincronizacionEnCurso = null;
+
+/*
+  FIX HT1 (AUD-01): revalida contra el backend los permisos y el rol del usuario.
+  Reemplaza al cacheo de localStorage: ya no se confía en los permisos guardados.
+  Si hay una revalidación en curso se reutiliza, para no duplicar peticiones cuando
+  el layout y la ruta protegida se sincronizan al mismo tiempo.
+*/
+export function sincronizarSesionUsuario() {
+  if (sincronizacionEnCurso) {
+    return sincronizacionEnCurso;
+  }
+
+  sincronizacionEnCurso = ejecutarSincronizacionDeSesion().finally(() => {
+    sincronizacionEnCurso = null;
+  });
+
+  return sincronizacionEnCurso;
+}
+
 export function usuarioTieneAlgunPermiso(codigosPermisos = []) {
   const permisos = obtenerPermisosGuardados();
   return codigosPermisos.some((codigoPermiso) =>

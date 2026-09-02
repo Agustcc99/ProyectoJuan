@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
+// FIX HT3 (AUD-04): formato de respuesta centralizado.
+const { enviarExito } = require("../../utils/response");
+
 const {
   verificarToken,
   verificarPermiso,
@@ -13,24 +16,18 @@ const {
 /*
   Ruta para listar los permisos activos del sistema.
   El usuario debe estar autenticado y tener el permiso asignar_permisos.
+
+  FIX HT3 (AUD-04): se eliminó el try/catch manual. El error viaja al middleware
+  centralizado registrado al final de la cadena en app.js.
 */
 router.get(
   "/",
   verificarToken,
   verificarPermiso("asignar_permisos"),
   async (req, res) => {
-    try {
-      const permisos = await listarPermisosActivos();
+    const permisos = await listarPermisosActivos();
 
-      res.status(200).json({
-        mensaje: "Permisos obtenidos correctamente.",
-        permisos,
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({
-        mensaje: error.message || "Error interno del servidor.",
-      });
-    }
+    enviarExito(res, 200, "Permisos obtenidos correctamente.", { permisos });
   }
 );
 

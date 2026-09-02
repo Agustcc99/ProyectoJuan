@@ -65,18 +65,27 @@ function RegistroPage() {
     setRegistrandoUsuario(true);
 
     try {
-      await registrarUsuario({
+      const resultadoRegistro = await registrarUsuario({
         nombre: datosRegistro.nombre,
         apellido: datosRegistro.apellido,
         email: datosRegistro.email,
         contrasena: datosRegistro.contrasena,
       });
 
-      setMensajeExito("Usuario registrado correctamente. Redirigiendo al login...");
+      /*
+        FIX HT7 (AUD-09): ya no se dice "registrado correctamente" sin más, porque
+        la cuenta no tiene acceso todavía. Se usa el mensaje que envía el backend
+        ("...quedará pendiente hasta que un administrador la apruebe"), con un
+        mensaje de respaldo por si la respuesta no lo incluyera.
+      */
+      setMensajeExito(
+        resultadoRegistro?.mensaje ||
+          "Registro recibido. Tu cuenta quedará pendiente hasta que un administrador la apruebe."
+      );
 
       setTimeout(() => {
         navigate("/login");
-      }, 1400);
+      }, 2600);
     } catch (error) {
       const mensajeRespuesta =
         error.response?.data?.mensaje ||

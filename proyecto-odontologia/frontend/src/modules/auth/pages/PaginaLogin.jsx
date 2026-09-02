@@ -1,16 +1,21 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthCard from "../components/AuthCard";
-import {
-  iniciarSesionUsuario,
-  guardarSesionUsuario,
-  obtenerPermisosUsuarioAutenticado,
-  guardarPermisosUsuario,
-} from "../services/authService";
+import { iniciarSesionUsuario } from "../services/authService";
+
+// FIX HT4 (AUD-05): el guardado de sesión pasa por el contexto.
+import useAuth from "../../../hooks/useAuth";
 import { ROLES_USUARIO } from "../../../utils/roles";
 
 function PaginaLogin() {
   const navigate = useNavigate();
+
+  /*
+    FIX HT4 (AUD-05): la sesión se guarda, se revalida y se consulta a través del
+    AuthContext. El aviso de sesión expirada (HT2) también llega desde el contexto.
+  */
+  const { iniciarSesion, revalidarSesion, mensajeSesion, limpiarMensajeSesion } =
+    useAuth();
 
   const [datosLogin, setDatosLogin] = useState({
     email: "",
@@ -47,6 +52,7 @@ function PaginaLogin() {
     evento.preventDefault();
 
     setMensajeError("");
+    limpiarMensajeSesion(); // FIX HT2: se oculta el aviso al reintentar el ingreso.
     setCargandoLogin(true);
 
     try {
@@ -55,19 +61,14 @@ function PaginaLogin() {
         contrasena: datosLogin.contrasena,
       });
 
-      guardarSesionUsuario(resultadoLogin.token, resultadoLogin.usuario);
+      // FIX HT4: se publica la sesión en el estado global (y en la persistencia).
+      iniciarSesion(resultadoLogin.token, resultadoLogin.usuario);
 
-      const respuestaPermisos = await obtenerPermisosUsuarioAutenticado();
+      // FIX HT1: se sincroniza la sesión contra el backend para arrancar siempre con
+      // el rol y los permisos vigentes (no con los que viajan en el token del login).
+      const sesionSincronizada = await revalidarSesion();
 
-      const permisosUsuario =
-        respuestaPermisos.permisos ||
-        respuestaPermisos.data ||
-        respuestaPermisos ||
-        [];
-
-      guardarPermisosUsuario(permisosUsuario);
-
-      redirigirUsuarioSegunRol(resultadoLogin.usuario);
+      redirigirUsuarioSegunRol(sesionSincronizada.usuario || resultadoLogin.usuario);
     } catch (error) {
       const mensajeRespuesta =
         error.response?.data?.mensaje ||
@@ -84,6 +85,13 @@ function PaginaLogin() {
       titulo="Iniciar sesión"
       subtitulo="Ingresá tus credenciales para acceder al sistema."
     >
+      {/* FIX HT2 (AUD-02): aviso informativo cuando la sesión expiró. */}
+      {mensajeSesion && (
+        <div className="alert alert-warning auth-alert" role="alert">
+          {mensajeSesion}
+        </div>
+      )}
+
       {mensajeError && (
         <div className="alert alert-danger auth-alert" role="alert">
           {mensajeError}

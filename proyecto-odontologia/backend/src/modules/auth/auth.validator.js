@@ -1,3 +1,6 @@
+// FIX HT3 (AUD-04): las validaciones responden con el formato uniforme.
+const { enviarError } = require("../../utils/response");
+
 function validarDatosDeRegistro(req, res, next) {
   const { nombre, apellido, email, contrasena } = req.body;
 
@@ -28,10 +31,8 @@ function validarDatosDeRegistro(req, res, next) {
   }
 
   if (errores.length > 0) {
-    return res.status(400).json({
-      mensaje: "Los datos enviados no son válidos.",
-      errores,
-    });
+    // FIX HT3: se delega el formato de la respuesta en el helper centralizado.
+    return enviarError(res, 400, "Los datos enviados no son válidos.", errores);
   }
 
   next();
@@ -57,10 +58,8 @@ function validarDatosDeLogin(req, res, next) {
   }
 
   if (errores.length > 0) {
-    return res.status(400).json({
-      mensaje: "Los datos enviados no son válidos.",
-      errores,
-    });
+    // FIX HT3: se delega el formato de la respuesta en el helper centralizado.
+    return enviarError(res, 400, "Los datos enviados no son válidos.", errores);
   }
 
   next();
@@ -82,10 +81,8 @@ function validarSolicitudRecuperacion(req, res, next) {
   }
 
   if (errores.length > 0) {
-    return res.status(400).json({
-      mensaje: "Los datos enviados no son válidos.",
-      errores,
-    });
+    // FIX HT3: se delega el formato de la respuesta en el helper centralizado.
+    return enviarError(res, 400, "Los datos enviados no son válidos.", errores);
   }
 
   next();
@@ -107,10 +104,8 @@ function validarRestablecimientoContrasena(req, res, next) {
   }
 
   if (errores.length > 0) {
-    return res.status(400).json({
-      mensaje: "Los datos enviados no son válidos.",
-      errores,
-    });
+    // FIX HT3: se delega el formato de la respuesta en el helper centralizado.
+    return enviarError(res, 400, "Los datos enviados no son válidos.", errores);
   }
 
   next();

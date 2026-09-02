@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
+// FIX HT3 (AUD-04): formato de respuesta centralizado.
+const { enviarExito } = require("../../utils/response");
+
 const {
   verificarToken,
   verificarPermiso,
@@ -9,7 +12,14 @@ const {
 const {
   listarUsuariosDelConsultorio,
   actualizarRolDeUsuario,
+  aprobarUsuarioPendiente,
 } = require("./usuarios.service");
+
+/*
+  FIX HT3 (AUD-04): se eliminaron los bloques try/catch repetidos en cada ruta.
+  Los errores lanzados por los services llegan al middleware centralizado de
+  errores registrado al final de la cadena en app.js.
+*/
 
 /*
   Ruta para listar los usuarios del consultorio autenticado.
@@ -20,20 +30,11 @@ router.get(
   verificarToken,
   verificarPermiso("ver_usuarios"),
   async (req, res) => {
-    try {
-      const idConsultorio = req.usuario.id_consultorio;
+    const idConsultorio = req.usuario.id_consultorio;
 
-      const usuarios = await listarUsuariosDelConsultorio(idConsultorio);
+    const usuarios = await listarUsuariosDelConsultorio(idConsultorio);
 
-      res.status(200).json({
-        mensaje: "Usuarios obtenidos correctamente.",
-        usuarios,
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({
-        mensaje: error.message || "Error interno del servidor.",
-      });
-    }
+    enviarExito(res, 200, "Usuarios obtenidos correctamente.", { usuarios });
   }
 );
 
@@ -46,26 +47,48 @@ router.put(
   verificarToken,
   verificarPermiso("asignar_roles_usuarios"),
   async (req, res) => {
-    try {
-      const idConsultorio = req.usuario.id_consultorio;
-      const idUsuario = req.params.id;
-      const { id_rol } = req.body;
+    const idConsultorio = req.usuario.id_consultorio;
+    const idUsuario = req.params.id;
+    const { id_rol } = req.body;
 
-      const usuarioActualizado = await actualizarRolDeUsuario(
-        idUsuario,
-        id_rol,
-        idConsultorio
-      );
+    const usuarioActualizado = await actualizarRolDeUsuario(
+      idUsuario,
+      id_rol,
+      idConsultorio
+    );
 
-      res.status(200).json({
-        mensaje: "Rol del usuario actualizado correctamente.",
-        usuario: usuarioActualizado,
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({
-        mensaje: error.message || "Error interno del servidor.",
-      });
-    }
+    enviarExito(res, 200, "Rol del usuario actualizado correctamente.", {
+      usuario: usuarioActualizado,
+    });
+  }
+);
+
+/*
+  Ruta para aprobar a un usuario pendiente (registrado públicamente) y asignarle
+  su rol definitivo dentro del consultorio del administrador autenticado.
+
+  FIX HT7 (AUD-09): reutiliza el permiso asignar_roles_usuarios en lugar de crear
+  uno nuevo -aprobar es, en la práctica, la primera asignación de rol de ese
+  usuario- y activa la cuenta en el mismo paso.
+*/
+router.patch(
+  "/:id/aprobar",
+  verificarToken,
+  verificarPermiso("asignar_roles_usuarios"),
+  async (req, res) => {
+    const idConsultorio = req.usuario.id_consultorio;
+    const idUsuario = req.params.id;
+    const { id_rol } = req.body;
+
+    const usuarioAprobado = await aprobarUsuarioPendiente(
+      idUsuario,
+      id_rol,
+      idConsultorio
+    );
+
+    enviarExito(res, 200, "Usuario aprobado y rol asignado correctamente.", {
+      usuario: usuarioAprobado,
+    });
   }
 );
 

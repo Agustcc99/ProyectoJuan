@@ -1,6 +1,74 @@
 const { poolDeConexiones } = require("../../config/db");
 
 /*
+  FIX HT8 (AUD-10) - subtarea "Definir criterio de rol con permisos de
+  administración": un rol cuenta como "administrador" cuando tiene asignados
+  AMBOS permisos siguientes:
+    - asignar_permisos: puede redefinir qué puede hacer cualquier rol.
+    - asignar_roles_usuarios: puede decidir qué usuario tiene cada rol.
+  Juntos son los dos permisos que controlan la autorización de todo el sistema:
+  quien los tiene puede, en el peor caso, otorgarse a sí mismo o a cualquier otro
+  usuario cualquier capacidad. Si un consultorio se queda sin ningún rol activo
+  que tenga esta combinación, nadie podría volver a administrar permisos ni
+  roles sin intervenir directamente la base de datos.
+  No se usa id_rol === 1 en ningún punto de esta verificación.
+*/
+const CODIGOS_PERMISOS_DE_ADMINISTRACION = [
+  "asignar_permisos",
+  "asignar_roles_usuarios",
+];
+
+/*
+  Determina si un rol tiene asignados todos los permisos que definen
+  "administración" (ver constante de arriba).
+*/
+async function rolTienePermisosDeAdministracion(idRol) {
+  const [filas] = await poolDeConexiones.query(
+    `SELECT COUNT(DISTINCT p.codigo_permiso) AS cantidad
+     FROM roles_permisos rp
+     INNER JOIN permisos p
+       ON p.id_permiso = rp.id_permiso
+     WHERE rp.id_rol = ?
+       AND p.codigo_permiso IN (?)`,
+    [idRol, CODIGOS_PERMISOS_DE_ADMINISTRACION]
+  );
+
+  return filas[0].cantidad === CODIGOS_PERMISOS_DE_ADMINISTRACION.length;
+}
+
+/*
+  Cuenta cuántos OTROS roles activos del mismo consultorio (excluyendo idRol)
+  también tienen permisos de administración. Si da 0, idRol es el último.
+*/
+async function contarOtrosRolesConPermisosDeAdministracion(idRol, idConsultorio) {
+  const [filas] = await poolDeConexiones.query(
+    `SELECT COUNT(*) AS cantidad
+     FROM (
+       SELECT r.id_rol
+       FROM roles r
+       INNER JOIN roles_permisos rp
+         ON rp.id_rol = r.id_rol
+       INNER JOIN permisos p
+         ON p.id_permiso = rp.id_permiso
+       WHERE r.id_consultorio = ?
+         AND r.activo = 1
+         AND r.id_rol <> ?
+         AND p.codigo_permiso IN (?)
+       GROUP BY r.id_rol
+       HAVING COUNT(DISTINCT p.codigo_permiso) = ?
+     ) AS roles_con_administracion`,
+    [
+      idConsultorio,
+      idRol,
+      CODIGOS_PERMISOS_DE_ADMINISTRACION,
+      CODIGOS_PERMISOS_DE_ADMINISTRACION.length,
+    ]
+  );
+
+  return filas[0].cantidad;
+}
+
+/*
   Obtiene todos los roles pertenecientes al consultorio del usuario autenticado.
   El id_consultorio llega desde el token JWT, por eso no se recibe desde el frontend.
 */
@@ -151,7 +219,13 @@ async function modificarRolDelConsultorio(idRol, datosRol, idConsultorio) {
 /*
   Realiza la baja lógica de un rol.
   No elimina el registro de la base de datos, solamente cambia su estado activo a 0.
-  También evita desactivar el rol administrador principal.
+
+  FIX HT8 (AUD-10) - subtarea "Reemplazar la validación por id fijo": ya no se
+  compara id_rol contra 1. En su lugar se evita desactivar el ÚLTIMO rol activo
+  del consultorio que tenga permisos de administración (asignar_permisos +
+  asignar_roles_usuarios), sin importar qué id_rol tenga. Si el consultorio
+  todavía conserva otro rol activo con esa combinación de permisos, la baja se
+  permite con normalidad.
 */
 async function desactivarRolDelConsultorio(idRol, idConsultorio) {
   if (!idRol || Number.isNaN(Number(idRol))) {
@@ -160,14 +234,8 @@ async function desactivarRolDelConsultorio(idRol, idConsultorio) {
     throw error;
   }
 
-  if (Number(idRol) === 1) {
-    const error = new Error("No se puede desactivar el rol administrador principal.");
-    error.statusCode = 400;
-    throw error;
-  }
-
   const [rolesEncontrados] = await poolDeConexiones.query(
-    `SELECT 
+    `SELECT
         id_rol,
         nombre_rol,
         descripcion,
@@ -192,6 +260,21 @@ async function desactivarRolDelConsultorio(idRol, idConsultorio) {
     const error = new Error("El rol ya se encuentra inactivo.");
     error.statusCode = 400;
     throw error;
+  }
+
+  const esRolDeAdministracion = await rolTienePermisosDeAdministracion(idRol);
+
+  if (esRolDeAdministracion) {
+    const cantidadOtrosRolesAdmin =
+      await contarOtrosRolesConPermisosDeAdministracion(idRol, idConsultorio);
+
+    if (cantidadOtrosRolesAdmin === 0) {
+      const error = new Error(
+        "No se puede desactivar: es el único rol con permisos de administración de este consultorio."
+      );
+      error.statusCode = 400;
+      throw error;
+    }
   }
 
   await poolDeConexiones.query(
