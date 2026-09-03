@@ -20,25 +20,17 @@ import LayoutPrincipal from "../components/layout/LayoutPrincipal";
 // Páginas
 import PaginaDashboard from "../modules/dashboard/DashboardPage";
 import PaginaPacientes from "../modules/pacientes/pages/PaginaPacientes";
+import FichaPacientePage from "../modules/pacientes/pages/FichaPacientePage";
 import RolesPage from "../modules/roles/pages/RolesPage";
 import CrearRolPage from "../modules/roles/pages/CrearRolPage";
 import EditarRolPage from "../modules/roles/pages/EditarRolPage";
 import UsuariosRolesPage from "../modules/usuarios/pages/UsuariosRolesPage";
-
-function Proximamente({ titulo }) {
-  return (
-    <main className="container py-5">
-      <div className="card border-0 shadow-sm rounded-4">
-        <div className="card-body p-4">
-          <h1 className="fw-bold">{titulo}</h1>
-          <p className="text-muted mb-0">
-            Esta sección será desarrollada próximamente.
-          </p>
-        </div>
-      </div>
-    </main>
-  );
-}
+import PaginaCatalogos from "../modules/catalogos/pages/PaginaCatalogos";
+import PaginaTratamientos from "../modules/tratamientos/pages/PaginaTratamientos";
+import DetalleTratamientoPage from "../modules/tratamientos/pages/DetalleTratamientoPage";
+import PaginaPagos from "../modules/pagos/pages/PaginaPagos";
+import PaginaGastos from "../modules/gastos/pages/PaginaGastos";
+import PaginaReportes from "../modules/reportes/page/PaginaReportes";
 
 function AccesoDenegado() {
   return (
@@ -128,10 +120,46 @@ function AppRouter() {
         />
 
         <Route
+          path="pacientes/:id"
+          element={
+            <RutaPorPermiso permisoRequerido="ver_pacientes">
+              <FichaPacientePage />
+            </RutaPorPermiso>
+          }
+        />
+
+        <Route
           path="tratamientos"
           element={
             <RutaPorPermiso permisoRequerido="ver_tratamientos">
-              <Proximamente titulo="Tratamientos" />
+              <PaginaTratamientos />
+            </RutaPorPermiso>
+          }
+        />
+
+        <Route
+          path="tratamientos/:id"
+          element={
+            <RutaPorPermiso permisoRequerido="ver_tratamientos">
+              <DetalleTratamientoPage />
+            </RutaPorPermiso>
+          }
+        />
+
+        <Route
+          path="pagos"
+          element={
+            <RutaPorPermiso permisoRequerido="ver_pagos">
+              <PaginaPagos />
+            </RutaPorPermiso>
+          }
+        />
+
+        <Route
+          path="gastos"
+          element={
+            <RutaPorPermiso permisoRequerido="ver_gastos">
+              <PaginaGastos />
             </RutaPorPermiso>
           }
         />
@@ -140,7 +168,7 @@ function AppRouter() {
           path="reportes"
           element={
             <RutaPorPermiso permisoRequerido="ver_reportes">
-              <Proximamente titulo="Reportes" />
+              <PaginaReportes />
             </RutaPorPermiso>
           }
         />
@@ -183,6 +211,15 @@ function AppRouter() {
           element={
             <RutaPorPermiso permisoRequerido="ver_usuarios">
               <UsuariosRolesPage />
+            </RutaPorPermiso>
+          }
+        />
+
+        <Route
+          path="administrador/catalogos"
+          element={
+            <RutaPorPermiso permisoRequerido="ver_catalogos">
+              <PaginaCatalogos />
             </RutaPorPermiso>
           }
         />

@@ -1,0 +1,64 @@
+/* ABM 01 — Catálogos. Reutiliza roles.css (panel, tabla, badges, modal). */
+
+.catalogos-page__pestanas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.catalogos-page__pestana {
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  padding: 9px 16px;
+  background: #ffffff;
+  color: #374151;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.catalogos-page__pestana:not(.catalogos-page__pestana--activa):hover {
+  background: #f3f4f6;
+  transform: translateY(-1px);
+}
+
+.catalogos-page__pestana.catalogos-page__pestana--activa {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.catalogos-page__candado {
+  font-size: 0.85rem;
+}
+
+/* Modal de formulario (alta / edición) */
+
+.catalogos-form {
+  width: min(100%, 480px);
+  text-align: left;
+}
+
+.catalogos-form__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.catalogos-form__errores {
+  margin: 0;
+  padding-left: 18px;
+}
+
+@media (max-width: 768px) {
+  .catalogos-page__pestanas {
+    flex-direction: column;
+  }
+
+  .catalogos-page__pestana {
+    width: 100%;
+  }
+}

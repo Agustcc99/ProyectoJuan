@@ -1,0 +1,141 @@
+/* ABM 04 — Pagos. Reutiliza roles.css / pacientes.css / tratamientos.css
+   (panel, tabla, badges, modal, mensajes, paginación, filtros). Acá van sólo
+   los agregados propios. */
+
+/* ── Formulario ───────────────────────────────────────────────────────────── */
+
+.pagos-form {
+  width: min(100%, 560px);
+  text-align: left;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.pagos-form select,
+.pagos-form input,
+.pagos-form textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  color: #374151;
+  background: #ffffff;
+  outline: none;
+}
+
+.pagos-form input:disabled,
+.pagos-form select:disabled,
+.pagos-form textarea:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.pagos-form__tratamiento {
+  margin: 6px 0 0;
+  color: #4b5563;
+  font-size: 0.9rem;
+}
+
+/* ── Sección de pagos en el detalle del tratamiento ───────────────────────── */
+
+.pagos-seccion__saldo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  margin: 4px 0 14px;
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #f9fafb;
+}
+
+.pagos-seccion__saldo div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pagos-seccion__saldo dt {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.pagos-seccion__saldo dd {
+  margin: 0;
+  font-size: 1rem;
+  color: #111827;
+}
+
+.pagos-seccion__saldo-destacado dd strong {
+  font-size: 1.2rem;
+  color: #0f172a;
+}
+
+/* ── Totales de la caja ───────────────────────────────────────────────────── */
+
+.pagos-page__totales {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  margin: 0 0 16px;
+}
+
+.pagos-page__totales div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pagos-page__totales dt {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.pagos-page__totales dd {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #111827;
+}
+
+/* ── Filas anuladas / acciones ────────────────────────────────────────────── */
+
+.pagos-fila--anulada td {
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+.pagos-fila--anulada .roles-page__badge {
+  text-decoration: none;
+}
+
+.pagos-fila__acciones {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.roles-page__boton--chico {
+  padding: 5px 12px;
+  font-size: 0.82rem;
+}
+
+.pagos-page__enlace {
+  border: none;
+  background: none;
+  padding: 0;
+  color: #1d4ed8;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.pagos-page__enlace:hover {
+  text-decoration: underline;
+}

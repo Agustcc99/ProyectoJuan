@@ -1,0 +1,117 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html,body { background:#ffffff; }
+body { font-family: Arial, "Helvetica Neue", Helvetica, sans-serif; color:#3f3f3f; }
+.frame { width:1000px; height:680px; background:#ffffff; display:flex; border:1px solid #cfcfcf; overflow:hidden; }
+.side { width:210px; border-right:1px solid #cfcfcf; background:#fafafa; padding:0; flex-shrink:0; }
+.brand { display:flex; align-items:center; gap:10px; padding:16px; border-bottom:1px solid #e2e2e2; }
+.brand .logo { width:34px; height:34px; border:1.5px solid #6f6f6f; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; color:#4a4a4a; }
+.brand .bt { font-weight:700; color:#2f2f2f; line-height:1.15; font-size:14px; }
+.nav { padding:14px 10px; }
+.nav .it { display:flex; align-items:center; gap:12px; padding:11px 12px; color:#7a7a7a; font-size:14px; border-radius:6px; margin-bottom:4px; }
+.nav .it .sq { width:14px; height:14px; border:1.5px solid #9a9a9a; }
+.nav .it.active { background:#e9e9e9; color:#1f1f1f; font-weight:700; }
+.nav .it.active .sq { background:#2f2f2f; border-color:#2f2f2f; }
+.main { flex:1; display:flex; flex-direction:column; }
+.top { height:64px; border-bottom:1px solid #cfcfcf; display:flex; align-items:center; padding:0 26px; gap:12px; }
+.crumb { color:#8a8a8a; font-size:15px; letter-spacing:.2px; }
+.crumb b { color:#5a5a5a; font-weight:600; }
+.who { margin-left:auto; color:#8a8a8a; font-size:14px; display:flex; align-items:center; gap:12px; }
+.who .av { width:34px; height:34px; border:1.5px solid #9a9a9a; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#6a6a6a; }
+.body { flex:1; padding:24px 30px; position:relative; overflow:hidden; }
+h1 { font-size:26px; color:#1f1f1f; font-weight:800; }
+.sub { color:#8a8a8a; margin-top:6px; font-size:12px; max-width:600px; }
+.card { border:1px solid #d8d8d8; border-radius:10px; margin-top:14px; padding:16px 18px; }
+.filters { display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
+.fld { display:flex; flex-direction:column; gap:4px; font-size:11px; font-weight:700; color:#6a6a6a; }
+.inp { border:1.5px solid #c4c4c4; border-radius:8px; padding:8px 11px; font-size:12px; color:#8a8a8a; font-weight:400; }
+.btn { border:1.5px solid #b8b8b8; border-radius:8px; padding:8px 13px; font-size:12px; color:#4a4a4a; background:#ffffff; display:inline-block; }
+.btn.primary { background:#2f2f2f; border-color:#2f2f2f; color:#ffffff; font-weight:700; }
+.leyenda { margin-top:10px; color:#8a8a8a; font-size:11px; }
+.kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:14px; }
+.kpi { border:1px solid #e2e2e2; border-left:4px solid #8a8a8a; border-radius:12px; padding:14px 16px; background:#f9f9f9; }
+.kpi dt { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:#8a8a8a; font-weight:700; }
+.kpi dd { font-size:20px; font-weight:800; color:#1f1f1f; margin-top:6px; }
+.kpi .note { font-size:11px; color:#9a9a9a; margin-top:4px; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+.panel { border:1px solid #d8d8d8; border-radius:10px; padding:14px 16px; }
+.panel h2 { font-size:13px; color:#1f1f1f; }
+.panel .psub { font-size:11px; color:#8a8a8a; margin-top:2px; margin-bottom:10px; }
+.estados { list-style:none; display:flex; flex-direction:column; gap:7px; }
+.estados li { display:flex; justify-content:space-between; align-items:center; padding:7px 11px; border:1px solid #ececec; border-radius:8px; background:#f9f9f9; font-size:12px; color:#4a4a4a; }
+.estados li b { font-size:14px; color:#1f1f1f; }
+.bars { list-style:none; display:flex; flex-direction:column; gap:11px; }
+.bars .row .rh { display:flex; justify-content:space-between; font-size:12px; color:#4a4a4a; }
+.bars .row .rh b { color:#1f1f1f; }
+.bars .row .track { margin-top:4px; height:9px; background:#e9e9e9; border-radius:999px; overflow:hidden; }
+.bars .row .fill { height:100%; background:#4a4a4a; border-radius:999px; }
+.bars .row .det { font-size:10px; color:#a5a5a5; margin-top:2px; }
+table { width:100%; border-collapse:collapse; margin-top:6px; }
+th { text-align:left; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:#7a7a7a; padding:9px 12px; border-bottom:1px solid #e2e2e2; background:#f6f6f6; }
+td { padding:9px 12px; border-bottom:1px solid #ececec; font-size:12px; color:#3f3f3f; }
+td.num, th.num { text-align:right; }
+td .lnk { color:#3a3a3a; font-weight:700; text-decoration:underline; }
+tfoot td { font-weight:700; border-top:2px solid #d8d8d8; }
+.mbar { display:block; height:6px; border-radius:999px; margin:2px 0; }
+.mbar.ing { background:#5a5a5a; }
+.mbar.egr { background:#a5a5a5; }
+.msg { margin-top:14px; border:1px solid #cfcfcf; background:#f3f3f3; border-radius:8px; padding:12px 14px; font-size:12px; color:#5a5a5a; }
+.denied { display:flex; flex-direction:column; align-items:flex-start; gap:12px; margin-top:60px; padding:28px; border:1px solid #d8d8d8; border-radius:12px; max-width:520px; }
+.denied h1 { font-size:22px; }
+.denied p { color:#7a7a7a; font-size:13px; }
+</style></head><body>
+<div class="frame">
+  <div class="side">
+    <div class="brand"><div class="logo">H</div><div class="bt">Consultorio<br>Herrera</div></div>
+    <div class="nav"><div class="it"><span class="sq"></span>Inicio</div><div class="it"><span class="sq"></span>Pacientes</div><div class="it"><span class="sq"></span>Tratamientos</div><div class="it"><span class="sq"></span>Pagos</div><div class="it"><span class="sq"></span>Gastos</div><div class="it active"><span class="sq"></span>Reportes</div><div class="it"><span class="sq"></span>Administración</div><div class="it"><span class="sq"></span>Catálogos</div></div>
+  </div>
+  <div class="main">
+    <div class="top"><div class="crumb">Panel &#8250; <b>Reportes</b></div>
+      <div class="who">Julieta · Asistente <span class="av">J</span></div>
+    </div>
+    <div class="body">
+<h1>Reportes</h1>
+<div class="sub">Cuánto se cobra, cuánto ingresa por cada práctica y cuánto se gasta, en el período elegido.</div>
+
+<div class="card">
+  <div class="filters">
+    <span class="fld">Desde<span class="inp">01/09/2026</span></span>
+    <span class="fld">Hasta<span class="inp">03/09/2026</span></span>
+    <span class="btn primary">Aplicar</span>
+    <span class="btn">Este mes</span>
+  </div>
+  <div class="leyenda">Período: 1 sept 2026 – 3 sept 2026 · Sólo cuentan los pagos y gastos vigentes.</div>
+</div>
+<div class="panel" style="margin-top:14px">
+  <h2>Arqueo por medio de pago</h2>
+  <div class="psub">Total $ 50.000,00 · cierre de caja del período</div>
+  <ul class="bars">
+    
+<li class="row">
+  <div class="rh"><span>efectivo</span><b>$ 50.000,00</b></div>
+  <div class="track"><div class="fill" style="width:100%"></div></div>
+  <div class="det">3 pagos</div>
+</li>
+    
+<li class="row">
+  <div class="rh"><span>transferencia</span><b>$ 0,00</b></div>
+  <div class="track"><div class="fill" style="width:2%"></div></div>
+  <div class="det">0 pagos</div>
+</li>
+    
+<li class="row">
+  <div class="rh"><span>tarjeta</span><b>$ 0,00</b></div>
+  <div class="track"><div class="fill" style="width:2%"></div></div>
+  <div class="det">0 pagos</div>
+</li>
+    
+<li class="row">
+  <div class="rh"><span>obra social</span><b>$ 0,00</b></div>
+  <div class="track"><div class="fill" style="width:2%"></div></div>
+  <div class="det">0 pagos</div>
+</li>
+  </ul>
+</div></div>
+  </div>
+</div>
+</body></html>

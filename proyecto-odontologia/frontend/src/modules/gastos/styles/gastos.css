@@ -1,0 +1,170 @@
+/* ABM 05 — Gastos. Reutiliza roles.css / pacientes.css / tratamientos.css
+   (panel, tabla, badges, modal, mensajes, paginación, filtros). Acá van sólo
+   los agregados propios. */
+
+/* ── Formulario ───────────────────────────────────────────────────────────── */
+
+.gastos-form {
+  width: min(100%, 560px);
+  text-align: left;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.gastos-form select,
+.gastos-form input[type="number"],
+.gastos-form input[type="date"],
+.gastos-form textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  color: #374151;
+  background: #ffffff;
+  outline: none;
+}
+
+.gastos-form input:disabled,
+.gastos-form select:disabled,
+.gastos-form textarea:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.gastos-form__tratamiento {
+  margin: 6px 0 0;
+  color: #4b5563;
+  font-size: 0.9rem;
+}
+
+.gastos-form__label {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.gastos-form__toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.gastos-form__toggle label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+/* ── Sección de gastos en el detalle del tratamiento ──────────────────────── */
+
+.gastos-seccion__total {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  margin: 4px 0 14px;
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #f9fafb;
+}
+
+.gastos-seccion__total div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gastos-seccion__total dt {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.gastos-seccion__total dd {
+  margin: 0;
+  font-size: 1rem;
+  color: #111827;
+}
+
+.gastos-seccion__total dd strong {
+  font-size: 1.2rem;
+  color: #0f172a;
+}
+
+/* ── Totales del listado ──────────────────────────────────────────────────── */
+
+.gastos-page__totales {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  margin: 0 0 16px;
+}
+
+.gastos-page__totales div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gastos-page__totales dt {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.gastos-page__totales dd {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #111827;
+}
+
+/* ── Filas anuladas / acciones ────────────────────────────────────────────── */
+
+.gastos-fila--anulada td {
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+.gastos-fila--anulada .roles-page__badge {
+  text-decoration: none;
+}
+
+.gastos-fila__acciones {
+  text-align: right;
+  white-space: nowrap;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.roles-page__boton--chico {
+  padding: 5px 12px;
+  font-size: 0.82rem;
+}
+
+.gastos-page__enlace {
+  border: none;
+  background: none;
+  padding: 0;
+  color: #1d4ed8;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.gastos-page__enlace:hover {
+  text-decoration: underline;
+}
+
+.gastos-page__general {
+  color: #6b7280;
+}

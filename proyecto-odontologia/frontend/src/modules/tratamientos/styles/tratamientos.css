@@ -1,0 +1,158 @@
+/* ABM 03 — Tratamientos. Reutiliza roles.css y pacientes.css (panel, tabla,
+   badges, modal, mensajes, paginación). Acá van sólo los agregados propios. */
+
+/* ── Filtros del listado ──────────────────────────────────────────────────── */
+
+.tratamientos-page__filtros {
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.tratamientos-page__filtros input[type="text"] {
+  min-width: 220px;
+}
+
+.tratamientos-page__filtros button {
+  flex-shrink: 0;
+}
+
+.tratamientos-page__filtro-fecha {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tratamientos-page__filtro-fecha input {
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 9px 12px;
+  font-size: 0.95rem;
+  color: #374151;
+  background: #ffffff;
+  outline: none;
+}
+
+/* ── Badges de estado ─────────────────────────────────────────────────────── */
+
+.tratamientos-badge--estado-1 {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.tratamientos-badge--estado-2 {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.tratamientos-badge--estado-3 {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.tratamientos-badge--estado-4 {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ── Formulario / modal de estado ─────────────────────────────────────────── */
+
+.tratamientos-form {
+  width: min(100%, 640px);
+  text-align: left;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.tratamientos-form select,
+.tratamientos-estado-modal select,
+.tratamientos-estado-modal textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  color: #374151;
+  background: #ffffff;
+  outline: none;
+}
+
+.tratamientos-form select:disabled,
+.tratamientos-form input:disabled,
+.tratamientos-form textarea:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.tratamientos-estado-modal {
+  width: min(100%, 460px);
+  text-align: left;
+}
+
+.tratamientos-estado-modal .pacientes-form__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+/* ── Timeline de auditoría ────────────────────────────────────────────────── */
+
+.tratamientos-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tratamientos-timeline__item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border-left: 2px solid #e5e7eb;
+  padding: 0 0 0 14px;
+  position: relative;
+}
+
+.tratamientos-timeline__punto {
+  position: absolute;
+  left: -7px;
+  top: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #2563eb;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 2px #e5e7eb;
+}
+
+.tratamientos-timeline__texto {
+  margin: 0;
+  color: #111827;
+  font-weight: 600;
+}
+
+.tratamientos-timeline__meta {
+  margin: 2px 0 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+/* ── Detalle ──────────────────────────────────────────────────────────────── */
+
+.tratamientos-detalle .roles-page__panel {
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .tratamientos-page__filtros {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

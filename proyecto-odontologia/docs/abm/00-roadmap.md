@@ -20,14 +20,14 @@ y tienen datos de prueba. Este roadmap trabaja sobre lo que hay, NO desde cero.
 | `roles` | Completo ✅ | `ID_ROL, NOMBRE_ROL, descripcion, activo, id_consultorio` |
 | `permisos` | Catálogo (solo listar) ✅ | `id_permiso, codigo_permiso, nombre_permiso, descripcion, activo` — **17 permisos ya sembrados** |
 | `roles_permisos` | Dentro de roles ✅ | `id_rol, id_permiso, fecha_asignacion` |
-| `pacientes` | **Sin ABM** (1 fila) | `ID_PACIENTE, NOMBRE, APELLIDO, DNI, TELEFONO, EMAIL, OBRA_SOCIAL, OBSERVACIONES, ACTIVO` |
-| `estados_tratamiento` | **Sin ABM** (4 filas) | `ID_ESTADO, NOMBRE_ESTADO` — sin `activo` |
-| `medios_pago` | **Sin ABM** (4 filas) | `ID_MEDIO_PAGO, NOMBRE_MEDIO` — sin `activo` |
-| `tipos_gasto` | **Sin ABM** (5 filas) | `ID_TIPO_GASTO, NOMBRE_TIPO` — sin `activo` |
-| `tipos_tratamiento` | **Sin ABM** (5 filas) | `ID_TIPO_TRATAMIENTO, NOMBRE, DESCRIPCION, ACTIVO` |
-| `tratamientos` | **Sin ABM** (1 fila) | `ID_TRATAMIENTO, ID_PACIENTE, ID_TIPO_TRATAMIENTO, DESCRIPCION, PRECIO_PACIENTE, ID_ESTADO, FECHA_INICIO, FECHA_FIN, OBSERVACIONES, ID_USUARIO, FECHA_CREACION` |
-| `pagos` | **Sin ABM** (1 fila) | `ID_PAGO, ID_TRATAMIENTO (NOT NULL), MONTO, ID_MEDIO_PAGO, FECHA_PAGO, NOTAS, ID_USUARIO` |
-| `gastos` | **Sin ABM** (2 filas) | `ID_GASTO, ID_TRATAMIENTO (NULLABLE), ID_TIPO_GASTO, MONTO, DESCRIPCION, FECHA_GASTO, ID_USUARIO` |
+| `pacientes` | ABM 02 ✅ (Sprint 3.2) | `ID_PACIENTE, NOMBRE, APELLIDO, DNI, TELEFONO, EMAIL, OBRA_SOCIAL, OBSERVACIONES, ACTIVO` + `id_consultorio, fecha_alta, id_usuario_alta, fecha_nacimiento` (mig. 003) |
+| `estados_tratamiento` | ABM 01 ✅ (Sprint 3.1) | `ID_ESTADO, NOMBRE_ESTADO, activo, descripcion` |
+| `medios_pago` | ABM 01 ✅ (Sprint 3.1) | `ID_MEDIO_PAGO, NOMBRE_MEDIO, activo, descripcion` |
+| `tipos_gasto` | ABM 01 ✅ (Sprint 3.1) | `ID_TIPO_GASTO, NOMBRE_TIPO, activo, descripcion` |
+| `tipos_tratamiento` | ABM 01 ✅ (Sprint 3.1) | `ID_TIPO_TRATAMIENTO, NOMBRE, DESCRIPCION, ACTIVO` |
+| `tratamientos` | ABM 03 ✅ (Sprint 4) | `ID_TRATAMIENTO, ID_PACIENTE, ID_TIPO_TRATAMIENTO, DESCRIPCION, PRECIO_PACIENTE, ID_ESTADO, FECHA_INICIO, FECHA_FIN, OBSERVACIONES, ID_USUARIO, FECHA_CREACION` + `id_consultorio, fecha_actualizacion, motivo_cancelacion` (mig. 005) |
+| `pagos` | ABM 04 ✅ (Sprint 4.3) | `ID_PAGO, ID_TRATAMIENTO (NOT NULL), MONTO, ID_MEDIO_PAGO, FECHA_PAGO, NOTAS, ID_USUARIO` + `id_consultorio, anulado, motivo_anulacion, id_usuario_anula, fecha_anulacion, fecha_creacion` (mig. 007) |
+| `gastos` | ABM 05 ✅ (Sprint 4.4) | `ID_GASTO, ID_TRATAMIENTO (NULLABLE), ID_TIPO_GASTO, MONTO, DESCRIPCION, FECHA_GASTO, ID_USUARIO` + `id_consultorio, anulado, motivo_anulacion, id_usuario_anula, fecha_anulacion, fecha_creacion` (mig. 009) |
 
 ### Datos ya cargados (seeds reales — usarlos, no reinventarlos)
 
@@ -116,24 +116,24 @@ registrar_pagos, registrar_gastos, ver_reportes
 
 | # | ABM | Tipo | Justificación (orden + relaciones clave) |
 |---|---|---|---|
-| **01** | **`catalogos`** (estados_tratamiento, medios_pago, tipos_gasto, tipos_tratamiento) | Soporte | Van primero: son las listas que referencian todas las transaccionales (`tratamientos.ID_ESTADO`, `tratamientos.ID_TIPO_TRATAMIENTO`, `pagos.ID_MEDIO_PAGO`, `gastos.ID_TIPO_GASTO`). Sin `activo` en 3 de las 4 → este ABM agrega la columna. Crea `database/` y el módulo `catalogos`. |
-| **02** | **`pacientes`** | Maestra | Maestro central y foco de la navegación (la ficha concentra tratamientos → pagos → gastos). `tratamientos.ID_PACIENTE` depende de él. Ya tiene `ACTIVO`, ruta `/panel/pacientes` y permisos `ver/crear/editar_pacientes` sembrados; falta el par `desactivar/reactivar` y toda la implementación. 1—N con `tratamientos`. |
-| **03** | **`tratamientos`** | Transaccional | Evento núcleo. No arranca hasta tener 01 y 02: referencia `pacientes` + `tipos_tratamiento` + `estados_tratamiento` + `usuarios`. Tiene ciclo de estados (`pendiente→en proceso→finalizado`/`cancelado`) y auditoría → sigue la plantilla completa del PDF. Crea `auditoria_cambios`. 1—N con `pagos` y `gastos`. |
-| **04** | **`pagos`** | Transaccional | Se registra **contra un tratamiento existente** (`pagos.ID_TRATAMIENTO` NOT NULL) → después de 03. Σ pagos vigentes vs. `PRECIO_PACIENTE` = saldo. N—1 con `tratamientos`, `medios_pago`, `usuarios`. Alta ya tiene permiso (`registrar_pagos`); falta `ver_pagos`, `anular_pagos` y la columna `ANULADO`. |
-| **05** | **`gastos`** | Transaccional | Último: `gastos.ID_TRATAMIENTO` es **NULLABLE** (gasto general vs. imputado) → necesita `tratamientos` pero no lo bloquea. N—1 con `tipos_gasto`, `usuarios`; N—1 opcional con `tratamientos`. Alta ya tiene permiso (`registrar_gastos`); falta `ver_gastos`, `editar_gastos`, `anular_gastos`, columna `ANULADO`. |
-| **06** | **`reportes`** | Solo lectura (no ABM) | Agrega ingresos (`pagos`), egresos (`gastos`), pendientes por tratamiento, resumen mensual. Al final: necesita datos reales de 03–05. Permiso `ver_reportes` ya sembrado. |
+| **01** ✅ | **`catalogos`** (estados_tratamiento, medios_pago, tipos_gasto, tipos_tratamiento) | Soporte | **Hecho (Sprint 3.1, HU-01…HU-04).** Creó `database/` (migraciones 001/002 + `schema-actual.sql` + `README.md`), el módulo `catalogos` (back y front) y el permiso `ver_catalogos`/`gestionar_catalogos`. Entrega en `docs/abm/entregas/01-catalogos/`. |
+| **02** ✅ | **`pacientes`** | Maestra | **Hecho (Sprint 3.2, HU-01…HU-06).** Migraciones 003 (`id_consultorio` + FK, `fecha_alta`, `id_usuario_alta` + FK, `fecha_nacimiento`) y 004 (permisos `desactivar_pacientes` / `reactivar_pacientes`). Módulo `pacientes` (back: routes/service/validator; front: `PaginaPacientes`, `FichaPacientePage`, `FormularioPaciente`). Entrega en `docs/abm/entregas/02-pacientes/`. 1—N con `tratamientos`. |
+| **03** ✅ | **`tratamientos`** | Transaccional | **Hecho (Sprint 4, HU13–HU19).** Migraciones 005 (`id_consultorio` + FK, `fecha_actualizacion`, `motivo_cancelacion`, tabla `auditoria_cambios`) y 006 (permisos `cambiar_estado_tratamientos` / `cancelar_tratamientos`). Módulo `tratamientos` (back: routes/service/validator; front: `PaginaTratamientos`, `DetalleTratamientoPage`, `FormularioTratamiento`, `CambiarEstadoModal`). Motor de estados con matriz de transiciones; baja lógica = estado `cancelado` con motivo. Entrega en `docs/abm/entregas/03-tratamientos/`. 1—N con `pagos` y `gastos`. |
+| **04** ✅ | **`pagos`** | Transaccional | **Hecho (Sprint 4.3, HU1–HU6).** Migraciones 007 (`id_consultorio` + FK, `anulado`, `motivo_anulacion`, `id_usuario_anula` + FK, `fecha_anulacion`, `fecha_creacion`) y 008 (permisos `ver_pagos` / `editar_pagos` / `anular_pagos`). Módulo `pagos` (back: routes/service/validator; front: `PaginaPagos`, `FormularioPago`, `AnularPagoModal`, `SeccionPagosTratamiento`). Baja lógica = anulación con motivo; monto inmutable. Integrado en `DetalleTratamientoPage.jsx`. Entrega en `docs/abm/entregas/04-pagos/`. |
+| **05** ✅ | **`gastos`** | Transaccional | **Hecho (Sprint 4.4, HU1–HU6).** Migraciones 009 (`id_consultorio` + FK, `anulado`, `motivo_anulacion`, `id_usuario_anula` + FK, `fecha_anulacion`, `fecha_creacion`) y 010 (permisos `ver_gastos` / `editar_gastos` / `anular_gastos`). Módulo `gastos` (back: routes/service/validator; front: `PaginaGastos`, `FormularioGasto`, `AnularGastoModal`, `SeccionGastosTratamiento`). Gasto general vs. imputado (`id_tratamiento` NULLABLE, cualquier estado); baja lógica = anulación con motivo; monto inmutable. Integrado en `DetalleTratamientoPage.jsx` (sección «Gastos imputados»). Entrega en `docs/abm/entregas/05-gastos/`. |
+| **06** ✅ | **`reportes`** | Solo lectura (no ABM) | **Hecho (Sprint doc 4.5, HU1–HU6).** Sin migración (usa `anulado` / `id_consultorio` de los ABM 04–05; permiso `ver_reportes` ya sembrado). Módulo backend `modules/reportes/` (`routes`/`service`/`validator`, 6 endpoints GET bajo `/api/reportes`: `resumen`, `ingresos-por-tipo`, `ingresos-por-medio`, `egresos-por-tipo`, `pendientes`, `mensual`) y frontend `modules/reportes/` (`PaginaReportes` real + `BarrasReporte` + service + estilos; barras div/CSS, sin librería de charts). Integrado en `app.js` y `AppRouter.jsx` (se quitó el placeholder `Proximamente`). Entrega en `docs/abm/entregas/06-reportes/`. |
 
 ---
 
 ## 5. Resumen del orden
 
 ```
-01. catalogos     (Soporte)        + crea database/, agrega `activo` a 3 catálogos
-02. pacientes     (Maestra)        + id_consultorio + FK, permisos desactivar/reactivar
-03. tratamientos  (Transaccional)  + id_consultorio + auditoria_cambios + doc completa
-04. pagos         (Transaccional)  + id_consultorio + columna anulado
-05. gastos        (Transaccional)  + id_consultorio + columna anulado
-06. reportes      (solo lectura)
+01. catalogos     (Soporte)        ✅ crea database/, agrega `activo` a 3 catálogos
+02. pacientes     (Maestra)        ✅ id_consultorio + FK, permisos desactivar/reactivar
+03. tratamientos  (Transaccional)  ✅ id_consultorio + auditoria_cambios + doc completa
+04. pagos         (Transaccional)  ✅ id_consultorio + columna anulado
+05. gastos        (Transaccional)  ✅ id_consultorio + columna anulado
+06. reportes      (solo lectura)   ✅ 6 endpoints de agregación, sin migración
 ```
 
 Cada ABM entrega también su documento `.docx` SprintLog (ver `_plantilla-documentacion.md`).
@@ -148,12 +148,12 @@ propongo (el usuario confirma antes de generar cada `.docx`):
 
 | ABM | Sprint doc | HU |
 |---|---|---|
-| catalogos | Sprint 3.1 (o el que elija el usuario) | HU (continúa) |
-| pacientes | Sprint 3.2 | HU… |
-| tratamientos | **Sprint 4** (ya existe, se completa) | HU13–HU16 |
-| pagos | Sprint 4.1 (ya anticipado en `com.docx`) | HU17… |
-| gastos | Sprint 4.2 | HU… |
-| reportes | Sprint 5 | HU… |
+| catalogos | Sprint 3.1 | HU-01…HU-04 |
+| pacientes | Sprint 3.2 | HU-01…HU-06 |
+| tratamientos | **Sprint 4** | HU13–HU19 |
+| pagos | Sprint 4.3 | HU1–HU6 (propias del sprint) |
+| gastos | **Sprint 4.4** | HU1–HU6 (propias del sprint) |
+| reportes | **Sprint 4.5** | HU1–HU6 (propias del sprint) |
 
 ---
 

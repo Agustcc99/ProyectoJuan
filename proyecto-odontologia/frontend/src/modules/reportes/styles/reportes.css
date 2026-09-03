@@ -1,0 +1,291 @@
+/* Módulo 06 — Reportes (consumo, solo lectura). Reutiliza roles.css /
+   pacientes.css (panel, tabla, mensajes, botones). Acá van sólo los agregados
+   propios: selector de período, tarjetas KPI, barras div/CSS y vista mensual. */
+
+.reportes-page {
+  gap: 20px;
+}
+
+/* ── Selector de período ─────────────────────────────────────────────────── */
+
+.reportes-periodo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.reportes-periodo__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.reportes-periodo__campo input,
+.reportes-periodo__campo select {
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 0.9rem;
+  color: #374151;
+  background: #ffffff;
+}
+
+.reportes-periodo__leyenda {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+/* ── Tarjetas KPI ────────────────────────────────────────────────────────── */
+
+.reportes-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.reportes-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 18px;
+  border: 1px solid #e5e7eb;
+  border-left: 4px solid #9ca3af;
+  border-radius: 14px;
+  background: #f9fafb;
+}
+
+.reportes-kpi--ingresos {
+  border-left-color: #15803d;
+}
+
+.reportes-kpi--egresos {
+  border-left-color: #b45309;
+}
+
+.reportes-kpi--neto {
+  border-left-color: #1d4ed8;
+}
+
+.reportes-kpi--neto-negativo {
+  border-left-color: #b91c1c;
+  background: #fef2f2;
+}
+
+.reportes-kpi__rotulo {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.reportes-kpi__valor {
+  font-size: 1.5rem;
+  color: #111827;
+}
+
+.reportes-kpi__nota {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* ── Grilla de paneles ──────────────────────────────────────────────────── */
+
+.reportes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.reportes-panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 16px 18px;
+  background: #ffffff;
+}
+
+.reportes-panel--ancho {
+  margin-bottom: 4px;
+}
+
+.reportes-panel__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 16px;
+  margin-bottom: 14px;
+}
+
+.reportes-panel__cabecera h2 {
+  margin: 0;
+  font-size: 1rem;
+  color: #111827;
+}
+
+.reportes-panel__sub {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.reportes__vacio {
+  margin: 0;
+  padding: 12px 0;
+  font-size: 0.88rem;
+  color: #6b7280;
+}
+
+/* ── Tratamientos por estado ────────────────────────────────────────────── */
+
+.reportes-estados {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reportes-estados__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border: 1px solid #eef0f2;
+  border-radius: 10px;
+  background: #f9fafb;
+}
+
+.reportes-estados__nombre {
+  font-size: 0.9rem;
+  color: #374151;
+  text-transform: capitalize;
+}
+
+.reportes-estados__cantidad {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* ── Barras div/CSS ─────────────────────────────────────────────────────── */
+
+.reportes-barras {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reportes-barras__cabecera {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.86rem;
+  color: #374151;
+}
+
+.reportes-barras__etiqueta {
+  text-transform: capitalize;
+}
+
+.reportes-barras__valor {
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+}
+
+.reportes-barras__pista {
+  margin-top: 4px;
+  height: 10px;
+  border-radius: 999px;
+  background: #eef0f2;
+  overflow: hidden;
+}
+
+.reportes-barras__relleno {
+  height: 100%;
+  border-radius: 999px;
+  background: #4b5563;
+  transition: width 0.25s ease;
+}
+
+.reportes-barras__detalle {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* ── Tablas numéricas ───────────────────────────────────────────────────── */
+
+.reportes-num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.reportes-num--saldo {
+  font-weight: 700;
+  color: #111827;
+}
+
+.reportes-num--negativo {
+  color: #b91c1c;
+}
+
+.reportes-enlace {
+  border: none;
+  background: none;
+  padding: 0;
+  color: #1d4ed8;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.reportes-enlace:hover {
+  text-decoration: underline;
+}
+
+/* ── Vista mensual ─────────────────────────────────────────────────────── */
+
+.reportes-mensual__cabecera {
+  align-items: flex-end;
+}
+
+.reportes-mensual__barras {
+  width: 32%;
+  min-width: 140px;
+}
+
+.reportes-mensual__barra {
+  display: block;
+  height: 7px;
+  border-radius: 999px;
+  margin: 3px 0;
+  min-width: 1px;
+}
+
+.reportes-mensual__barra--ingreso {
+  background: #15803d;
+}
+
+.reportes-mensual__barra--egreso {
+  background: #b45309;
+}
+
+.reportes-mensual tfoot td {
+  font-weight: 700;
+  border-top: 2px solid #e5e7eb;
+}

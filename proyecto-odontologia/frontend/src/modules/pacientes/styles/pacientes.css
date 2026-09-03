@@ -1,0 +1,145 @@
+/* ABM 02 — Pacientes. Reutiliza roles.css (panel, tabla, badges, modal, mensajes). */
+
+/* Filtros: el listado agrega un botón "Buscar" al lado del input y el select. */
+.pacientes-page .roles-page__filtros {
+  flex-wrap: wrap;
+}
+
+.pacientes-page .roles-page__filtros button {
+  flex-shrink: 0;
+}
+
+/* Fila clickeable del listado */
+.pacientes-page__fila {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.pacientes-page__fila:hover td {
+  background: #f8fafc;
+}
+
+/* Paginación */
+.pacientes-page__paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.pacientes-page__paginacion-botones {
+  display: flex;
+  gap: 8px;
+}
+
+.pacientes-page__paginacion-botones button {
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 8px 14px;
+  background: #ffffff;
+  color: #374151;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.pacientes-page__paginacion-botones button:hover:not(:disabled) {
+  background: #f3f4f6;
+  transform: translateY(-1px);
+}
+
+.pacientes-page__paginacion-botones button:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* ── Ficha ─────────────────────────────────────────────────────────────────── */
+
+.pacientes-ficha .roles-page__panel {
+  margin-bottom: 20px;
+}
+
+.pacientes-ficha__subtitulo {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+  color: #111827;
+}
+
+.pacientes-ficha__datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin: 0;
+}
+
+.pacientes-ficha__datos > div,
+.pacientes-ficha__bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pacientes-ficha__bloque {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.pacientes-ficha__datos dt,
+.pacientes-ficha__bloque dt {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pacientes-ficha__datos dd,
+.pacientes-ficha__bloque dd {
+  margin: 0;
+  color: #111827;
+  font-size: 0.98rem;
+}
+
+.pacientes-ficha__tratamientos .roles-page__estado {
+  text-align: left;
+  margin: 0;
+}
+
+/* ── Formulario (modal alta / edición) ─────────────────────────────────────── */
+
+.pacientes-form {
+  width: min(100%, 640px);
+  text-align: left;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.pacientes-form__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.pacientes-form__grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.pacientes-form__errores {
+  margin: 0;
+  padding-left: 18px;
+}
+
+@media (max-width: 768px) {
+  .pacientes-page__paginacion {
+    justify-content: center;
+  }
+}

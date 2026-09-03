@@ -12,6 +12,12 @@ const authRoutes = require("./modules/auth/auth.routes");
 const rolesRoutes = require("./modules/roles/roles.routes");
 const permisosRoutes = require("./modules/permisos/permisos.routes");
 const usuariosRoutes = require("./modules/usuarios/usuarios.routes");
+const catalogosRoutes = require("./modules/catalogos/catalogos.routes");
+const pacientesRoutes = require("./modules/pacientes/pacientes.routes");
+const tratamientosRoutes = require("./modules/tratamientos/tratamientos.routes");
+const pagosRoutes = require("./modules/pagos/pagos.routes");
+const gastosRoutes = require("./modules/gastos/gastos.routes");
+const reportesRoutes = require("./modules/reportes/reportes.routes");
 
 const app = express();
 
@@ -74,6 +80,24 @@ app.use("/api/permisos", permisosRoutes);
 
 // Rutas para usuarios
 app.use("/api/usuarios", usuariosRoutes);
+
+// Rutas para catálogos de soporte (ABM 01)
+app.use("/api/catalogos", catalogosRoutes);
+
+// Rutas para pacientes (ABM 02)
+app.use("/api/pacientes", pacientesRoutes);
+
+// Rutas para tratamientos (ABM 03)
+app.use("/api/tratamientos", tratamientosRoutes);
+
+// Rutas para pagos (ABM 04)
+app.use("/api/pagos", pagosRoutes);
+
+// Rutas para gastos (ABM 05)
+app.use("/api/gastos", gastosRoutes);
+
+// Rutas para reportes (Módulo 06 — consumo, solo lectura)
+app.use("/api/reportes", reportesRoutes);
 
 /*
   FIX HT3 (AUD-04): cierre de la cadena de middlewares.
